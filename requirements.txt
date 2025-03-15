@@ -1,0 +1,18 @@
+streamlit
+pdfkit
+beautifulsoup4
+requests
+opencv-python
+numpy
+pymupdf
+tensorflow
+pillow
+tk
+pyppeteer  # Required for pdfkit to work properly
+reportlab  # Additional support for PDF processing
+scipy  # Useful for numerical operations
+matplotlib  # Optional: If visualization is needed
+PyMuPDF  # Alternative import name for pymupdf
+flask  # Optional: If API server is needed
+pymupdf
+urllib3
