@@ -1,255 +1,189 @@
-import React, { useState, useRef } from 'react';
-import { BookOpen, Download, Trash2, Save } from 'lucide-react';
-import SignatureCanvas from 'react-signature-canvas';
-import { jsPDF } from 'jspdf';
-import { format } from 'date-fns';
-import { useTheme } from '../../context/ThemeContext';
+import React, { useState, useRef } from "react";
+import jsPDF from "jspdf";
+import SignatureCanvas from "react-signature-canvas";
+import { Shield } from "lucide-react";
+import { format } from "date-fns";
+import "tailwindcss/tailwind.css";
 
-const WillTestament: React.FC = () => {
-  const { isDarkMode } = useTheme();
-  const [willType, setWillType] = useState('Simple Will');
-  const [form, setForm] = useState({
-    name: '',
-    address: '',
-    executor: '',
-    beneficiary: '',
-    asset: '',
-    date: format(new Date(), 'yyyy-MM-dd'),
-    guardian: '',
-    trustee: '',
-    spouseName: '',
-    medicalAgent: '',
-    organDonation: '',
-    statement: ''
+interface Beneficiary {
+  name: string;
+  asset: string;
+}
+
+const WillDocument: React.FC = () => {
+  const [formData, setFormData] = useState({
+    full_name: "",
+    address: "",
+    jurisdiction: "",
+    executor_name: "",
+    alternate_executor: "",
+    witness1_name: "",
+    witness1_address: "",
+    witness2_name: "",
+    witness2_address: "",
+    funeral_wishes: "",
+    special_requests: "",
+    beneficiaries: [] as Beneficiary[],
+    date: format(new Date(), "yyyy-MM-dd"),
   });
 
-  const sigCanvas = useRef<SignatureCanvas>(null);
-  const [isSaving, setIsSaving] = useState(false);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    if (name === 'willType') {
-      setWillType(value);
-    } else {
-      setForm({ ...form, [name]: value });
-    }
+  const sigPads = {
+    testator: useRef<SignatureCanvas | null>(null),
+    executor: useRef<SignatureCanvas | null>(null),
+    witness1: useRef<SignatureCanvas | null>(null),
+    witness2: useRef<SignatureCanvas | null>(null),
   };
 
-  const generatePDF = async () => {
-    setIsSaving(true);
-    try {
-      const doc = new jsPDF();
-      
-      // Header
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(20);
-      doc.text('LAST WILL & TESTAMENT', 105, 20, { align: 'center' });
-      
-      // Content
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'normal');
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      [e.target.name]: e.target.value,
+    }));
+  };
 
-      let content = '';
-      switch (willType) {
-        case 'Simple Will':
-          content = `I, ${form.name}, declare that my estate shall be distributed as follows:\n\n` +
-                   `- Executor: ${form.executor}\n` +
-                   `- Beneficiary: ${form.beneficiary} will receive ${form.asset}.\n` +
-                   `- Guardian: ${form.guardian} (if applicable)`;
-          break;
+  const handleBeneficiaryChange = (index: number, field: keyof Beneficiary, value: string) => {
+    setFormData((prevData) => {
+      const updatedBeneficiaries = [...prevData.beneficiaries];
 
-        case 'Living Will':
-          content = `I, ${form.name}, declare that in the event of incapacitation:\n\n` +
-                   `- Medical Agent: ${form.medicalAgent}\n` +
-                   `- Organ Donation: ${form.organDonation}`;
-          break;
-
-        case 'Joint Will':
-          content = `We, ${form.name} and ${form.spouseName}, declare that:\n\n` +
-                   `- Upon one's passing, the surviving spouse inherits the estate.\n` +
-                   `- Executor: ${form.executor}\n` +
-                   `- Beneficiary: ${form.beneficiary}`;
-          break;
-
-        case 'Testamentary Trust Will':
-          content = `I, ${form.name}, establish a trust for:\n\n` +
-                   `- Trustee: ${form.trustee}\n` +
-                   `- Beneficiaries: ${form.beneficiary}\n` +
-                   `- Assets: ${form.asset}`;
-          break;
-
-        case 'Holographic Will':
-          content = `I, ${form.name}, in my handwriting state:\n\n${form.statement}`;
-          break;
+      if (!updatedBeneficiaries[index]) {
+        updatedBeneficiaries[index] = { name: "", asset: "" };
       }
 
-      // Basic information
-      doc.text(`Name: ${form.name}`, 20, 40);
-      doc.text(`Address: ${form.address}`, 20, 50);
-      doc.text(`Date: ${form.date}`, 20, 60);
+      updatedBeneficiaries[index] = { ...updatedBeneficiaries[index], [field]: value };
 
-      // Will content
-      const contentLines = doc.splitTextToSize(content, 170);
-      doc.text(contentLines, 20, 80);
+      return { ...prevData, beneficiaries: updatedBeneficiaries };
+    });
+  };
 
-      // Signature
-      if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
-        const signatureImage = sigCanvas.current.toDataURL('image/png');
-        doc.addImage(signatureImage, 'PNG', 20, 200, 50, 20);
-        doc.text(`Signed Date: ${form.date}`, 20, 230);
+  const addBeneficiary = () => {
+    setFormData((prevData) => ({
+      ...prevData,
+      beneficiaries: [...prevData.beneficiaries, { name: "", asset: "" }],
+    }));
+  };
+
+  const generatePDF = () => {
+    const pdf = new jsPDF();
+    pdf.setFontSize(16);
+    pdf.text("LAST WILL AND TESTAMENT", 50, 20);
+    pdf.setFontSize(12);
+
+    let beneficiaryText = "";
+    formData.beneficiaries.forEach((ben) => {
+      beneficiaryText += `- ${ben.name.toUpperCase()} receives ${ben.asset}\n`;
+    });
+
+    const willText = `
+    LAST WILL AND TESTAMENT
+
+    I, ${formData.full_name.toUpperCase()}, residing at ${formData.address.toUpperCase()}, in ${formData.jurisdiction.toUpperCase()}, being of sound mind, declare this to be my Last Will and Testament.
+
+    1. Executor Appointment
+    I appoint ${formData.executor_name.toUpperCase()} as my Executor. If they are unable or unwilling to serve, ${formData.alternate_executor.toUpperCase()} will act as alternate Executor.
+
+    2. Beneficiaries and Asset Distribution
+    ${beneficiaryText || "No specific beneficiaries listed."}
+
+    3. Additional Provisions
+    - Funeral Wishes: ${formData.funeral_wishes || "None"}
+    - Special Instructions: ${formData.special_requests || "None"}
+
+    4. Signatures & Witnesses
+    Signed on this ${formData.date}.
+    `;
+
+    pdf.text(pdf.splitTextToSize(willText, 180), 10, 30);
+    // pdf.text("Signatures", 80, 90);
+
+    const addSignature = (title: string, x: number, y: number, sigPadRef: React.RefObject<SignatureCanvas>) => {
+      pdf.text(`${title}:`, x, y);
+      if (sigPadRef.current && !sigPadRef.current.isEmpty()) {
+        const imgData = sigPadRef.current.getTrimmedCanvas().toDataURL("image/png");
+        pdf.addImage(imgData, "PNG", x, y + 10, 50, 20);
+      } else {
+        pdf.text("No signature provided", x, y + 10);
       }
+    };
 
-      doc.save('Will_Testament.pdf');
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-    } finally {
-      setIsSaving(false);
-    }
+    addSignature("TESTATOR", 10, 130, sigPads.testator);
+    addSignature("EXECUTOR", 110, 130, sigPads.executor);
+    addSignature("WITNESS 1", 10, 180, sigPads.witness1);
+    addSignature("WITNESS 2", 110, 180, sigPads.witness2);
+
+    pdf.save("Last_Will_and_Testament.pdf");
   };
 
   return (
-    <div className="min-h-screen pt-20 px-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center mb-8">
-          <BookOpen className="w-8 h-8 text-amber-500 mr-3" />
-          <h1 className="text-3xl font-bold">Will & Testament</h1>
+    <div className="flex flex-col items-center p-5 bg-gray-100 min-h-screen">
+      <div className="w-full max-w-2xl bg-white p-5 rounded-lg shadow-md">
+        <div className="flex items-center mb-4">
+          <Shield className="w-8 h-8 text-red-500 mr-3" />
+          <h2 className="text-xl font-bold">Last Will and Testament</h2>
         </div>
 
-        <div className={`rounded-xl shadow-lg p-8 ${
-          isDarkMode ? 'bg-gray-800' : 'bg-white'
-        }`}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium mb-2">Will Type</label>
-              <select
-                name="willType"
-                value={willType}
-                onChange={handleChange}
-                className={`w-full px-4 py-2 rounded-lg border ${
-                  isDarkMode 
-                    ? 'bg-gray-700 border-gray-600 text-white' 
-                    : 'bg-white border-gray-300'
-                } focus:ring-2 focus:ring-amber-500 focus:border-transparent`}
-              >
-                <option>Simple Will</option>
-                <option>Living Will</option>
-                <option>Joint Will</option>
-                <option>Testamentary Trust Will</option>
-                <option>Holographic Will</option>
-              </select>
-            </div>
-
-            {['name', 'address', 'executor', 'beneficiary', 'asset', 'guardian', 'trustee', 'spouseName', 'medicalAgent', 'organDonation']
-              .filter(field => {
-                if (willType === 'Living Will' && ['executor', 'guardian', 'trustee', 'spouseName'].includes(field)) return false;
-                if (willType === 'Joint Will' && ['guardian', 'trustee', 'medicalAgent', 'organDonation'].includes(field)) return false;
-                if (willType === 'Testamentary Trust Will' && ['executor', 'medicalAgent', 'organDonation', 'spouseName'].includes(field)) return false;
-                if (willType === 'Holographic Will' && field !== 'name' && field !== 'address') return false;
-                return true;
-              })
-              .map((field) => (
-                <div key={field}>
-                  <label className="block text-sm font-medium mb-2">
-                    {field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1')}
-                  </label>
-                  <input
-                    type="text"
-                    name={field}
-                    value={form[field as keyof typeof form]}
-                    onChange={handleChange}
-                    className={`w-full px-4 py-2 rounded-lg border ${
-                      isDarkMode 
-                        ? 'bg-gray-700 border-gray-600 text-white' 
-                        : 'bg-white border-gray-300'
-                    } focus:ring-2 focus:ring-amber-500 focus:border-transparent`}
-                    placeholder={`Enter ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`}
-                  />
-                </div>
-              ))}
-
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium mb-2">Date</label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {Object.entries(formData).map(([key, value]) =>
+            key !== "beneficiaries" ? (
               <input
-                type="date"
-                name="date"
-                value={form.date}
+                key={key}
+                name={key}
+                value={value as string}
+                placeholder={key.replace(/_/g, " ")}
+                className="p-2 border rounded"
                 onChange={handleChange}
-                className={`w-full px-4 py-2 rounded-lg border ${
-                  isDarkMode 
-                    ? 'bg-gray-700 border-gray-600 text-white' 
-                    : 'bg-white border-gray-300'
-                } focus:ring-2 focus:ring-amber-500 focus:border-transparent`}
+              />
+            ) : null
+          )}
+        </div>
+
+        <div className="mt-4">
+          <h3 className="font-bold">Beneficiaries</h3>
+          {formData.beneficiaries.map((ben, index) => (
+            <div key={index} className="flex gap-2 mt-2">
+              <input
+                type="text"
+                placeholder="Beneficiary Name"
+                className="p-2 border rounded"
+                value={ben.name}
+                onChange={(e) => handleBeneficiaryChange(index, "name", e.target.value)}
+              />
+              <input
+                type="text"
+                placeholder="Asset/Percentage"
+                className="p-2 border rounded"
+                value={ben.asset}
+                onChange={(e) => handleBeneficiaryChange(index, "asset", e.target.value)}
               />
             </div>
+          ))}
+          <button className="mt-2 bg-green-500 text-white p-2 rounded" onClick={addBeneficiary}>
+            Add Beneficiary
+          </button>
+        </div>
 
-            {willType === 'Holographic Will' && (
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium mb-2">Statement</label>
-                <textarea
-                  name="statement"
-                  value={form.statement}
-                  onChange={handleChange}
-                  rows={6}
-                  className={`w-full px-4 py-2 rounded-lg border ${
-                    isDarkMode 
-                      ? 'bg-gray-700 border-gray-600 text-white' 
-                      : 'bg-white border-gray-300'
-                  } focus:ring-2 focus:ring-amber-500 focus:border-transparent`}
-                  placeholder="Enter your will statement"
-                />
-              </div>
-            )}
-
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium mb-2">Signature</label>
-              <div className={`border-2 rounded-lg ${
-                isDarkMode ? 'border-gray-600' : 'border-gray-300'
-              }`}>
-                <SignatureCanvas
-                  ref={sigCanvas}
-                  canvasProps={{
-                    className: `w-full ${isDarkMode ? 'bg-gray-700' : 'bg-white'}`,
-                    style: { height: '150px' }
-                  }}
-                />
-              </div>
-              <button
-                onClick={() => sigCanvas.current?.clear()}
-                className="mt-2 px-4 py-2 text-sm text-red-500 hover:text-red-600 flex items-center"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Clear Signature
+        <div className="mt-4">
+          <h3 className="font-bold">Signatures</h3>
+          {Object.keys(sigPads).map((role) => (
+            <div key={role} className="mt-2">
+              <p className="font-semibold">{role.toUpperCase()}</p>
+              <SignatureCanvas
+                ref={sigPads[role]}
+                penColor="black"
+                canvasProps={{ width: 300, height: 100, className: "border p-1" }}
+              />
+              <button className="mt-2 bg-red-500 text-white p-1 rounded" onClick={() => sigPads[role].current?.clear()}>
+                Clear
               </button>
             </div>
-          </div>
-
-          <div className="mt-8 flex justify-end space-x-4">
-            <button
-              onClick={generatePDF}
-              disabled={isSaving}
-              className={`px-6 py-3 rounded-lg flex items-center space-x-2 ${
-                isSaving
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-amber-600 hover:bg-amber-700'
-              } text-white transition-colors duration-200`}
-            >
-              {isSaving ? (
-                <>
-                  <Save className="w-5 h-5 animate-spin" />
-                  <span>Generating PDF...</span>
-                </>
-              ) : (
-                <>
-                  <Download className="w-5 h-5" />
-                  <span>Generate PDF</span>
-                </>
-              )}
-            </button>
-          </div>
+          ))}
         </div>
+
+        <button className="mt-4 w-full bg-blue-500 text-white p-2 rounded" onClick={generatePDF}>
+          Generate PDF
+        </button>
       </div>
     </div>
   );
 };
 
-export default WillTestament;
+export default WillDocument;

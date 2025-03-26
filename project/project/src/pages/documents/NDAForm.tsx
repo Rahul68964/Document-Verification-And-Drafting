@@ -35,7 +35,7 @@ const NDAForm: React.FC = () => {
   };
 
   const generateNDAContent = () => {
-    return `NON-DISCLOSURE AGREEMENT\n\nJURISDICTION: ${formData.jurisdiction}\n\nThis Agreement is made on ${formData.date} between \n${formData.disclosing_party} ("Disclosing Party") residing at ${formData.disclosing_address}\nand\n${formData.receiving_party} ("Receiving Party") residing at ${formData.receiving_address}.\n\n1. PURPOSE\n   The parties wish to disclose confidential information for the purpose of ${formData.purpose}.\n\n2. OBLIGATIONS\n   The Receiving Party shall not disclose confidential information without prior consent.\n\n3. TERM\n   This Agreement shall remain in effect indefinitely unless terminated in writing.\n\n4. SIGNATURES\n   IN WITNESS WHEREOF, the parties have executed this Agreement.\n\n   Disclosing Party: _________________    Receiving Party: _________________\n        ${formData.disclosing_party}              ${formData.receiving_party}\n\n5. WITNESSES\n   Witness 1: _________________  Witness 2: _________________\n        ${formData.witness1_name}           ${formData.witness2_name}`;
+    return `NON-DISCLOSURE AGREEMENT\n\nJURISDICTION: ${formData.jurisdiction}\n\nThis Agreement is made on ${formData.date} between \n${formData.disclosing_party} ("Disclosing Party") residing at ${formData.disclosing_address}\nand\n${formData.receiving_party} ("Receiving Party") residing at ${formData.receiving_address}.\n\n1. PURPOSE\n   The parties wish to disclose confidential information for the purpose of ${formData.purpose}.\n\n2. OBLIGATIONS\n   The Receiving Party shall not disclose confidential information without prior consent.\n\n3. TERM\n   This Agreement shall remain in effect indefinitely unless terminated in writing.\n\n4. SIGNATURES\n   IN WITNESS WHEREOF, the parties have executed this Agreement.\n\n `;
   };
 
   const generatePDF = () => {
@@ -58,11 +58,17 @@ const NDAForm: React.FC = () => {
       }
     };
     
-    // Adding signatures
-    addSignature(disclosingSigPad, "Disclosing Party Signature:", 10, 220);
-    addSignature(receivingSigPad, "Receiving Party Signature:", 110, 220);
-    addSignature(witness1SigPad, "Witness 1 Signature:", 10, 250);
-    addSignature(witness2SigPad, "Witness 2 Signature:", 110, 250);
+    // // Adding signatures
+    // addSignature(disclosingSigPad, "Disclosing Party Signature:" , 10, 220);
+    // addSignature(receivingSigPad, "Receiving Party Signature:", 110, 220);
+    // addSignature(witness1SigPad, "Witness 1 Signature:", 10, 250);
+    // addSignature(witness2SigPad, "Witness 2 Signature:", 110, 250);
+
+    addSignature(disclosingSigPad, `Disclosing Party Signature:\n${formData.disclosing_party}`, 10, 150);
+addSignature(receivingSigPad, `Receiving Party Signature:\n${formData.receiving_party}`, 110, 150);
+addSignature(witness1SigPad, `Witness 1 Signature:\n${formData.witness1_name}`, 10, 180);
+addSignature(witness2SigPad, `Witness 2 Signature:\n${formData.witness2_name}`, 110, 180);
+
         
     pdf.save("NDA_Agreement.pdf");
   };

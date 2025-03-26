@@ -10,11 +10,12 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 import Drafting from './pages/Drafting';
 import BondPaper from './pages/documents/BondPaper';
-import GreenPaper from './pages/documents/GreenPaper';
-import Affidavit from './pages/documents/Affidavit';
+import GreenPaper from './pages/documents/PowerOfAttorney';
 import WillTestament from './pages/documents/WillTestament';
 import NDAForm from './pages/documents/NDAForm';
 import PdfUploader from './PdfUploader';
+import Notifications from './pages/Notifications';
+import MyDocuments from './pages/MyDocuments';
 
 function App() {
   return (
@@ -33,10 +34,11 @@ function App() {
             <Route path="/verification" element={<PdfUploader />} />
             <Route path="/drafting/bond-paper" element={<BondPaper />} />
             <Route path="/drafting/green-paper" element={<GreenPaper />} />
-            <Route path="/drafting/affidavit" element={<Affidavit />} />
             <Route path="/drafting/will-testament" element={<WillTestament />} />
             <Route path="/drafting/nda-form" element={<NDAForm />} />
-          </Routes>
+            <Route path="/notifications" element={<Notifications />} />
+            <Route path="/documents" element={<MyDocuments />} />
+              </Routes>
         </div>
       </Router>
     </ThemeProvider>
