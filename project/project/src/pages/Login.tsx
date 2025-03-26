@@ -7,14 +7,31 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
   const { isDarkMode } = useTheme();
   const [credentials, setCredentials] = useState({ username: '', password: '' });
+  const [error, setError] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Static login check
-    if (credentials.username === 'admin' && credentials.password === 'password') {
-      navigate('/dashboard');
-    } else {
-      alert('Invalid credentials. Use username: admin, password: password');
+    setError('');
+
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/login/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem('token', data.token); // Store token in localStorage
+        navigate('/dashboard');
+      } else {
+        setError(data.error || 'Login failed');
+      }
+    } catch (error) {
+      setError('Network error. Please try again.');
     }
   };
 
@@ -26,6 +43,7 @@ const Login: React.FC = () => {
         isDarkMode ? 'bg-gray-800' : 'bg-white shadow-xl'
       }`}>
         <h2 className="text-3xl font-bold text-center mb-8">Welcome Back</h2>
+        {error && <p className="text-red-500 text-center">{error}</p>}
         <form onSubmit={handleLogin} className="space-y-6">
           <div className="space-y-2">
             <label className="block text-sm font-medium">Username</label>
@@ -36,9 +54,7 @@ const Login: React.FC = () => {
                 value={credentials.username}
                 onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
                 className={`w-full pl-10 pr-4 py-2 rounded-lg transition-colors ${
-                  isDarkMode
-                    ? 'bg-gray-700 focus:bg-gray-600'
-                    : 'bg-gray-50 focus:bg-white'
+                  isDarkMode ? 'bg-gray-700 focus:bg-gray-600' : 'bg-gray-50 focus:bg-white'
                 } border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500`}
                 placeholder="Enter username"
               />
@@ -54,9 +70,7 @@ const Login: React.FC = () => {
                 value={credentials.password}
                 onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
                 className={`w-full pl-10 pr-4 py-2 rounded-lg transition-colors ${
-                  isDarkMode
-                    ? 'bg-gray-700 focus:bg-gray-600'
-                    : 'bg-gray-50 focus:bg-white'
+                  isDarkMode ? 'bg-gray-700 focus:bg-gray-600' : 'bg-gray-50 focus:bg-white'
                 } border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500`}
                 placeholder="Enter password"
               />
@@ -75,4 +89,4 @@ const Login: React.FC = () => {
   );
 };
 
-export default Login
+export default Login;

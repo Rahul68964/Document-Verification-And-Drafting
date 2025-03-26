@@ -9,26 +9,20 @@ const Drafting: React.FC = () => {
 
   const documentTypes = [
     {
-      title: 'Bond Paper',
+      title: 'Rent Agreement',
       description: 'Create legally binding bond agreements and contracts',
       icon: FileText,
       path: '/drafting/bond-paper',
       color: 'from-blue-500 to-blue-600'
     },
     {
-      title: 'Green Paper',
+      title: 'Power Of Attorney',
       description: 'Draft environmental and sustainability documents',
       icon: Scroll,
       path: '/drafting/green-paper',
       color: 'from-green-500 to-green-600'
     },
-    {
-      title: 'Affidavit',
-      description: 'Generate sworn statements and legal declarations',
-      icon: FileCheck,
-      path: '/drafting/affidavit',
-      color: 'from-purple-500 to-purple-600'
-    },
+    
     {
       title: 'Will & Testament',
       description: 'Create comprehensive will and testament documents',

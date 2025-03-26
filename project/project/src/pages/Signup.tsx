@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, ArrowRight } from 'lucide-react';
+import { Mail, Lock, ArrowRight, User } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import toast, { Toaster } from 'react-hot-toast';
 
@@ -8,6 +8,7 @@ const Signup: React.FC = () => {
   const navigate = useNavigate();
   const { isDarkMode } = useTheme();
   const [formData, setFormData] = useState({
+    username: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -16,17 +17,33 @@ const Signup: React.FC = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (formData.password !== formData.confirmPassword) {
       toast.error('Passwords do not match');
       return;
     }
-    
+
     try {
       setLoading(true);
-      // Here you would typically make an API call to create the user account
-      // For now, we'll just simulate a successful signup
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
+      const response = await fetch('http://127.0.0.1:8000/api/signup/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          username: formData.username,
+          email: formData.email,
+          password: formData.password
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Signup failed');
+      }
+
       toast.success('Account created successfully!');
       navigate('/login');
     } catch (error: any) {
@@ -47,6 +64,21 @@ const Signup: React.FC = () => {
         
         <form onSubmit={handleSignup} className="space-y-6">
           <div className="space-y-2">
+            <label className="block text-sm font-medium">Username</label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                value={formData.username}
+                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                placeholder="Enter your username"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
             <label className="block text-sm font-medium">Email</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -54,11 +86,7 @@ const Signup: React.FC = () => {
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className={`w-full pl-10 pr-4 py-2 rounded-lg transition-colors ${
-                  isDarkMode
-                    ? 'bg-gray-700 focus:bg-gray-600'
-                    : 'bg-gray-50 focus:bg-white'
-                } border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500`}
+                className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 placeholder="Enter your email"
                 required
               />
@@ -73,11 +101,7 @@ const Signup: React.FC = () => {
                 type="password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className={`w-full pl-10 pr-4 py-2 rounded-lg transition-colors ${
-                  isDarkMode
-                    ? 'bg-gray-700 focus:bg-gray-600'
-                    : 'bg-gray-50 focus:bg-white'
-                } border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500`}
+                className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 placeholder="Create password"
                 required
                 minLength={8}
@@ -93,11 +117,7 @@ const Signup: React.FC = () => {
                 type="password"
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                className={`w-full pl-10 pr-4 py-2 rounded-lg transition-colors ${
-                  isDarkMode
-                    ? 'bg-gray-700 focus:bg-gray-600'
-                    : 'bg-gray-50 focus:bg-white'
-                } border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500`}
+                className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 placeholder="Confirm password"
                 required
                 minLength={8}
