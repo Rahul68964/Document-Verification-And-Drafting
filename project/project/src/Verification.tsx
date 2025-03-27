@@ -47,7 +47,7 @@ const Verification: React.FC = () => {
       title: 'Verify E-Signature',
       description: 'Check if the document is already e-signed',
       icon: FileCheck2,
-      path: '/verify-esign',
+      path: '/Eresponse',
       color: 'from-teal-500 to-teal-600'
     }
   ];

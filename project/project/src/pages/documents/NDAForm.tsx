@@ -150,9 +150,9 @@ addSignature(witness2SigPad, `Witness 2 Signature:\n${formData.witness2_name}`, 
         </div>
 
         {/* Preview Button */}
-        <button className="mt-4 w-full bg-blue-500 text-white p-2 rounded" onClick={() => setIsPreviewOpen(true)}>
+        {/* <button className="mt-4 w-full bg-blue-500 text-white p-2 rounded" onClick={() => setIsPreviewOpen(true)}>
           See Preview
-        </button>
+        </button> */}
 
         {/* Download PDF Button */}
         <button className="mt-4 w-full bg-green-500 text-white p-2 rounded" onClick={generatePDF}>

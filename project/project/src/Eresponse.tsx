@@ -3,6 +3,7 @@ import { Upload, Loader2, XCircle } from "lucide-react";
 
 interface ApiResponse {
   type: string;
+  eresponse: string;  // Generic response from E-Sign API
 }
 
 export default function DocumentVerification() {
@@ -58,28 +59,43 @@ export default function DocumentVerification() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
       <div className="w-full max-w-4xl bg-white shadow-xl rounded-2xl overflow-hidden p-6">
-        <h2 className="text-2xl font-bold text-center text-blue-800">Document Verification</h2>
+        <h2 className="text-2xl font-bold text-center text-blue-800">E-Sign Document Verification</h2>
 
         <div className="mt-6 flex flex-col items-center">
           <input type="file" accept="application/pdf" onChange={handleFileChange} className="hidden" id="file-upload" />
           <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center space-y-3 text-blue-600 hover:text-blue-800 transition">
             <Upload className="w-12 h-12" />
-            <span className="font-semibold">{file ? "Change PDF" : "Click to upload PDF"}</span>
+            <span className="font-semibold">{file ? "Change PDF" : "Click to upload document PDF"}</span>
           </label>
 
-          {fileUrl && <iframe src={fileUrl} className="w-full h-[300px] border rounded-lg mt-4" title="PDF Preview"></iframe>}
+          {fileUrl && (
+            <iframe src={fileUrl} className="w-full h-[300px] border rounded-lg mt-4" title="PDF Preview"></iframe>
+          )}
 
           <button
             onClick={handleUpload}
             disabled={!file || loading}
-            className="mt-4 w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold rounded-lg hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 ease-in-out"
+            className="mt-4 w-full flex items-center justify-center gap-3 px-4 py-3 
+              bg-gradient-to-r from-blue-500 to-blue-600 
+              text-white font-bold rounded-lg 
+              hover:from-blue-600 hover:to-blue-700 
+              disabled:opacity-50 disabled:cursor-not-allowed 
+              transition-all duration-300 ease-in-out"
           >
-            {loading ? (<><Loader2 className="animate-spin w-5 h-5" /> Processing...</>) : (<>Verify Document</>)}
+            {loading ? (
+              <>
+                <Loader2 className="animate-spin w-5 h-5" />
+                Processing...
+              </>
+            ) : (
+              <>Verify Document</>
+            )}
           </button>
         </div>
 
         {error && <p className="mt-4 text-red-600 font-semibold">{error}</p>}
 
+        {/* Modal */}
         {showModal && data && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
             <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
@@ -91,8 +107,9 @@ export default function DocumentVerification() {
               </div>
 
               <div className="mt-4">
-                <p className="text-lg font-semibold text-center">
-                  {data.type === "Aadhar Card" ? "This is an Aadhaar Card" : "This is NOT an Aadhaar Card"}
+                <p className="text-lg font-bold text-gray-800">Verification Response:</p>
+                <p className="text-xl font-semibold text-blue-700">
+                  {data.eresponse || "No response found"}
                 </p>
               </div>
 

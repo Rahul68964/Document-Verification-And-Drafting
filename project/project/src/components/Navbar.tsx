@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Sun, Moon, Menu, X, FileEdit } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
@@ -7,7 +7,9 @@ const Navbar: React.FC = () => {
   const { isDarkMode, toggleTheme } = useTheme();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [username, setUsername] = useState<string | null>(null);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
   const isDashboard = location.pathname === '/dashboard';
@@ -19,6 +21,43 @@ const Navbar: React.FC = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    console.log('token:', token);
+    if (token) {
+      fetchUser(token);
+    }
+  }, []);
+
+  const fetchUser = async (token: string) => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/user/', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Token ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('User data:', data);
+        setUsername(data.username);
+        console.log('Username:', data.username);
+      } else {
+        console.error('Failed to fetch user data');
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setUsername(null);
+    navigate('/');
+  };
 
   if (isAuthPage) return null;
 
@@ -45,13 +84,24 @@ const Navbar: React.FC = () => {
               <>
                 <Link to="/about" className="hover:text-blue-400 transition-colors">About</Link>
                 <Link to="/contact" className="hover:text-blue-400 transition-colors">Contact</Link>
-                <Link to="/login" className="hover:text-blue-400 transition-colors">Login</Link>
-                <Link
-                  to="/signup"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Sign Up
-                </Link>
+                {username ? (
+                  <>
+                    <button onClick={handleLogout} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                      Logout
+                    </button>
+                    <span className="font-semibold">{username}</span>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/login" className="hover:text-blue-400 transition-colors">Login</Link>
+                    <Link
+                      to="/signup"
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Sign Up
+                    </Link>
+                  </>
+                )}
               </>
             )}
             <button
@@ -92,18 +142,32 @@ const Navbar: React.FC = () => {
                   >
                     Contact
                   </Link>
-                  <Link
-                    to="/login"
-                    className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors"
-                  >
-                    Login
-                  </Link>
-                  <Link
-                    to="/signup"
-                    className="block px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                  >
-                    Sign Up
-                  </Link>
+                  {username ? (
+                    <>
+                      <button
+                        onClick={handleLogout}
+                        className="block w-full px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                      >
+                        Logout
+                      </button>
+                      <span className="block px-3 py-2 text-center font-semibold">{username}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        to="/login"
+                        className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors"
+                      >
+                        Login
+                      </Link>
+                      <Link
+                        to="/signup"
+                        className="block px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                      >
+                        Sign Up
+                      </Link>
+                    </>
+                  )}
                 </>
               )}
             </div>

@@ -21,6 +21,9 @@ import AgeAbove18 from './AgeAbove18';
 import VotingcardVerification from './VotingcardVerification';
 import AadharCardVerification from './AadharCardVerification';
 import PancardVerification from './PancardVerification';
+import Eresponse from './Eresponse';
+import Notifications from './Notifications';
+import MyDocuments from './MyDocuments';
 
 
 function App() {
@@ -44,6 +47,7 @@ function App() {
             <Route path="/verify-age" element={<AgeAbove18 />} />
             <Route path="/verify-aadhar" element={<AadharCardVerification />} />
             <Route path="/verify-voting" element={<VotingcardVerification />} />
+            <Route path="/Eresponse" element={<Eresponse />} />
 
             <Route path="/drafting/bond-paper" element={<BondPaper />} />
             {/* <Route path="/drafting/green-paper" element={<GreenPaper />} /> */}
@@ -51,6 +55,8 @@ function App() {
             <Route path="/drafting/will-testament" element={<WillTestament />} />
             <Route path="/drafting/nda-form" element={<NDAForm />} />
             <Route path="/drafting/green-paper" element={<PowerOfAttorney />} />
+            <Route path="/Notifications" element={<Notifications />} />
+            <Route path="/documents" element={<MyDocuments />} />
           </Routes>
         </div>
       </Router>

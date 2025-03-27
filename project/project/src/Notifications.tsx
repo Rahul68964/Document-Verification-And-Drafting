@@ -1,6 +1,6 @@
 import React from 'react';
 import { Bell, FileText, CheckCircle, AlertCircle, Clock, Calendar } from 'lucide-react';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme } from './context/ThemeContext';
 import { format, subHours, subDays } from 'date-fns';
 
 const Notifications: React.FC = () => {

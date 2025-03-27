@@ -96,9 +96,13 @@ def process_document(request):
     verify_prompt = "Analyze this document for signs of tampering. Provide verification status in short (2 lines)."
     verification = query_gemini(verify_prompt, image_b64) or "Verification failed"
 
+    esignature_promt = "We have to See whether document is e Verified or not, reply yes or no and output status in 2 line"
+    eresponse = query_gemini(esignature_promt, image_b64) or "E-Signature Verification failed"
+
     response_data = {
         "type": doc_type,
         "details": details,
         "verification": verification,
+        "eresponse":eresponse
     }
     return JsonResponse(response_data)

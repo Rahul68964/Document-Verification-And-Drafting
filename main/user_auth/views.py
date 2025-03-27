@@ -42,3 +42,22 @@ def logout_api(request):
     request.user.auth_token.delete()  # Remove token
     logout(request)
     return Response({'message': 'Logged out successfully'}, status=status.HTTP_200_OK)
+
+from rest_framework.authentication import TokenAuthentication
+
+@api_view(['GET'])
+def get_user_details(request):
+    auth = TokenAuthentication()
+    user_auth_tuple = auth.authenticate(request)
+
+    if user_auth_tuple is not None:
+        user, token = user_auth_tuple
+    else:
+        return Response({"error": "Invalid Token"}, status=status.HTTP_401_UNAUTHORIZED)
+
+    user_data = {
+        "id": user.id,
+        "username": user.username,
+    }
+
+    return Response(user_data, status=status.HTTP_200_OK)

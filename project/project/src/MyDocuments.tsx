@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FileText, CheckCircle, Clock, Calendar, Download, Eye, Search, Filter } from 'lucide-react';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme } from './context/ThemeContext';
 import { format, subDays } from 'date-fns';
 
 const MyDocuments: React.FC = () => {
