@@ -18,7 +18,7 @@ load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GEMINI_MODEL = "gemini-2.0-flash"
-DOCUMENT_TYPES = ["Land Records", "Caste Certificates", "Property Registrations", "Others"]
+DOCUMENT_TYPES = ["Land Records", "Caste Certificates", "Property Registrations", "Aadhar Card","Domicile","Leaving Certificate","Pan Card","Election Card","Others"]
 
 def encode_file(uploaded_file):
     try:

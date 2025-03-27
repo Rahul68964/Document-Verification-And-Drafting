@@ -33,6 +33,10 @@ const PowerOfAttorneyForm: React.FC = () => {
     setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
+  const getSignatureData = (sigPadRef: React.RefObject<SignatureCanvas>) => {
+    return sigPadRef.current ? sigPadRef.current.getTrimmedCanvas().toDataURL("image/png") : null;
+  };
+
   const generatePDF = () => {
     const pdf = new jsPDF();
     pdf.setFontSize(16);
@@ -127,6 +131,59 @@ const PowerOfAttorneyForm: React.FC = () => {
     pdf.save("Power_of_Attorney.pdf");
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const postData = {
+      jurisdiction: formData.jurisdiction,
+      date: formData.date,
+      principalName: formData.principal,
+      principalAddress: formData.principal_address,
+      attorneyName: formData.attorney,
+      attorneyAddress: formData.attorney_address,
+      witness1Name: formData.witness1_name,
+      witness1Address: formData.witness1_address,
+      witness2Name: formData.witness2_name,
+      witness2Address: formData.witness2_address,
+      principalSignature: getSignatureData(sigPads.principal),
+      attorneySignature: getSignatureData(sigPads.attorney),
+      witness1Signature: getSignatureData(sigPads.witness1),
+      witness2Signature: getSignatureData(sigPads.witness2),
+    };
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/draft/power-of-attorney/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCSRFToken(), // Include CSRF token
+        },
+        body: JSON.stringify(postData),
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        generatePDF();
+        alert("Power of Attorney saved successfully!");
+
+      } else {
+        alert("Error: " + result.error);
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    }
+
+
+  };
+
+  const getCSRFToken = () => {
+    const csrfToken = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("csrftoken="))
+      ?.split("=")[1];
+    return csrfToken || "";
+  };
+
   return (
     <div className="flex flex-col items-center p-5 bg-gray-100 min-h-screen">
       <div className="w-full max-w-2xl bg-white p-5 rounded-lg shadow-md">
@@ -135,39 +192,40 @@ const PowerOfAttorneyForm: React.FC = () => {
           <h2 className="text-xl font-bold">Power of Attorney Form</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {Object.entries(formData).map(([key, value]) => (
-            <input
-              key={key}
-              name={key}
-              value={value}
-              placeholder={key.replace(/_/g, " ")}
-              className="p-2 border rounded"
-              onChange={handleChange}
-            />
-          ))}
-        </div>
-
-        {Object.entries(sigPads).map(([key, ref]) => (
-          <div key={key} className="mt-4">
-            <p className="text-sm font-bold capitalize">{key.replace("_", " ")} Signature:</p>
-            <SignatureCanvas
-              ref={ref}
-              penColor="black"
-              canvasProps={{ width: 300, height: 100, className: "border" }}
-            />
+        <form onSubmit={handleSubmit}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {Object.entries(formData).map(([key, value]) => (
+              <input
+                key={key}
+                name={key}
+                value={value}
+                placeholder={key.replace(/_/g, " ")}
+                className="p-2 border rounded"
+                onChange={handleChange}
+              />
+            ))}
           </div>
-        ))}
 
-        <button
-          className="mt-4 w-full bg-blue-500 text-white p-2 rounded"
-          onClick={generatePDF}
-        >
-          Generate PDF
-        </button>
+          {Object.entries(sigPads).map(([key, ref]) => (
+            <div key={key} className="mt-4">
+              <p className="text-sm font-bold capitalize">{key.replace("_", " ")} Signature:</p>
+              <SignatureCanvas
+                ref={ref}
+                penColor="black"
+                canvasProps={{ width: 300, height: 100, className: "border" }}
+              />
+            </div>
+          ))}
+
+          <button type="submit" className="mt-4 w-full bg-blue-500 text-white p-2 rounded">
+            Submit Form
+          </button>
+        </form>
       </div>
     </div>
   );
 };
+
+
 
 export default PowerOfAttorneyForm;

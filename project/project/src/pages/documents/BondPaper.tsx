@@ -1,16 +1,13 @@
-import React, { useState, useRef, Fragment } from "react";
+import React, { useState, useRef } from "react";
 import jsPDF from "jspdf";
-import { Dialog, Transition } from "@headlessui/react";
 import SignatureCanvas from "react-signature-canvas";
 import { Home, Download, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { useTheme } from "../../context/ThemeContext";
 import "tailwindcss/tailwind.css";
-import bondImage from "../../components/assets/bond.jpg";
 
 const RentAgreementForm = () => {
   const { isDarkMode } = useTheme();
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [formData, setFormData] = useState({
     landlord_name: "",
     landlord_address: "",
@@ -22,7 +19,7 @@ const RentAgreementForm = () => {
     security_deposit: "",
     start_date: format(new Date(), "yyyy-MM-dd"),
     witness1_name: "",
-    witness2_name: ""
+    witness2_name: "",
   });
 
   const landlordSigPad = useRef(null);
@@ -35,54 +32,54 @@ const RentAgreementForm = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const generatePDF = () => {
-    const pdf = new jsPDF();
-    const imgWidth = 210;
-    const imgHeight = 100;
-    pdf.addImage(bondImage, "JPEG", 0, 0, imgWidth, imgHeight);
-    pdf.setFontSize(16);
-    pdf.text("RENT AGREEMENT", 80, imgHeight + 10);
-    pdf.setFontSize(12);
-    const agreementText = `RENT AGREEMENT
-
-This Rent Agreement is made on ${formData.start_date} between 
-${formData.landlord_name} ("Landlord") residing at ${formData.landlord_address}
-and
-${formData.tenant_name} ("Tenant") residing at ${formData.tenant_address}.
-
-1. PROPERTY
-   The Landlord agrees to rent the property located at ${formData.property_address} to the Tenant.
-
-2. RENT AND SECURITY DEPOSIT
-   The Tenant agrees to pay a monthly rent of ${formData.rent_amount} and a security deposit of ${formData.security_deposit}.
-
-3. TERM
-   This lease agreement is valid for a period of ${formData.lease_term}.
-
-4. MAINTENANCE AND UTILITIES
-   The Tenant is responsible for keeping the property in good condition and will pay for all utilities unless otherwise agreed.
-
-5. RESTRICTIONS
-   The Tenant shall not sublet the property, engage in illegal activities, or make modifications without the Landlord’s consent.`;
-   pdf.text(agreementText, 10, imgHeight + 20, { maxWidth: 180 });
-
-   const addSignature = (sigPad, label, xPosition, yPosition) => {
-    if (sigPad.current && !sigPad.current.isEmpty()) {
-      const signatureImage = sigPad.current.toDataURL("image/png");
-  
-      // Adjusted order: Add signature first, then the label below it
-      pdf.addImage(signatureImage, "PNG", xPosition, yPosition, 50, 20);
-      pdf.text(label, xPosition, yPosition + 25);
-    }
+  const clearSignature = (sigPad) => {
+    if (sigPad.current) sigPad.current.clear();
   };
-  
-  // Adjust Y-coordinates so text is below the signature
-  addSignature(landlordSigPad, "Landlord Signature:", 10, imgHeight + 130);
-  addSignature(tenantSigPad, "Tenant Signature:", 110, imgHeight + 130);
-  addSignature(witness1SigPad, "Witness 1 Signature:", 10, imgHeight + 160);
-  addSignature(witness2SigPad, "Witness 2 Signature:", 110, imgHeight + 160);
-  
-    pdf.save("Rent_Agreement.pdf");
+
+  const getSignatureData = (sigPad) => {
+    return sigPad.current && !sigPad.current.isEmpty()
+      ? sigPad.current.toDataURL("image/png")
+      : null;
+  };
+
+  const handleSubmit = async () => {
+    const formDataWithSignatures = {
+      landlordName: formData.landlord_name,
+      landlordAddress: formData.landlord_address,
+      tenantName: formData.tenant_name,
+      tenantAddress: formData.tenant_address,
+      propertyAddress: formData.property_address,
+      rentAmount: formData.rent_amount,
+      leaseTerm: formData.lease_term,
+      securityDeposit: formData.security_deposit,
+      agreementDate: formData.start_date,
+      witness1Name: formData.witness1_name,
+      witness2Name: formData.witness2_name,
+      landlordSignature: getSignatureData(landlordSigPad),
+      tenantSignature: getSignatureData(tenantSigPad),
+      witness1Signature: getSignatureData(witness1SigPad),
+      witness2Signature: getSignatureData(witness2SigPad),
+    };
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/draft/rent-agre/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formDataWithSignatures),
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        alert("Rent agreement saved successfully!");
+      } else {
+        alert(`Error: ${result.error}`);
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert("Failed to save rent agreement.");
+    }
   };
 
   return (
@@ -113,15 +110,15 @@ ${formData.tenant_name} ("Tenant") residing at ${formData.tenant_address}.
               canvasProps={{ className: "border p-2 w-full h-20" }}
             />
             <button
-              onClick={() => [landlordSigPad, tenantSigPad, witness1SigPad, witness2SigPad][index].current?.clear()}
+              onClick={() => clearSignature([landlordSigPad, tenantSigPad, witness1SigPad, witness2SigPad][index])}
               className="mt-2 text-red-500 flex items-center"
             >
               <Trash2 className="w-4 h-4 mr-2" />Clear Signature
             </button>
           </div>
         ))}
-        <button className="mt-4 w-full bg-green-500 text-white p-2 rounded" onClick={generatePDF}>
-          Download PDF
+        <button className="mt-4 w-full bg-blue-500 text-white p-2 rounded" onClick={handleSubmit}>
+          Submit Agreement
         </button>
       </div>
     </div>
